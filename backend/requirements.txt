@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+motor
+pydantic-settings
+httpx
+python-dotenv
+numpy
+scikit-learn
+pydantic
