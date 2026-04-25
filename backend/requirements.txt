@@ -4,6 +4,7 @@ motor
 pydantic-settings
 httpx
 python-dotenv
-numpy
 scikit-learn
-pydantic
+openai
+typing-extensions
+dnspython
