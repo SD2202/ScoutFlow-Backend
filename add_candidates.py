@@ -2,7 +2,7 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 
-MONGODB_URL = "mongodb://localhost:27017"
+MONGODB_URL = "mongodb+srv://Sparsh:SSD@cluster1.wu5egox.mongodb.net/?appName=Cluster1"
 DATABASE_NAME = "ai_recruiter"
 
 candidates_to_add = [
