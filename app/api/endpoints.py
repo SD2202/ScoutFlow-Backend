@@ -17,6 +17,19 @@ async def parse_jd(jd_text: str = Body(..., embed=True)):
     prompt = f"Parse this Job Description into JSON: {jd_text}"
     return await llama_service.execute_brain_task(prompt)
 
+@router.get("/debug")
+async def debug_db():
+    try:
+        # Check if we can reach the database
+        await client.admin.command('ping')
+        return {
+            "status": "connected",
+            "database": settings.DATABASE_NAME,
+            "url_provided": settings.MONGODB_URL[:20] + "..." # Hide password
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @router.get("/candidates")
 async def get_candidates():
     cursor = db.candidates.find()
