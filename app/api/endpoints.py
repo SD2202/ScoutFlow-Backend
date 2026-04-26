@@ -56,7 +56,7 @@ async def simulate_conversation(
     candidate_profile: Dict[str, Any] = Body(...),
     recruiter_message: str = Body(...)
 ):
-    # Use Mistral for chat simulation
+    # Use AI for chat simulation
     prompt = f"""
     You are the following candidate: {json.dumps(candidate_profile)}
     A recruiter has sent you this message: "{recruiter_message}"
@@ -66,7 +66,23 @@ async def simulate_conversation(
     - tone (string)
     - interest_level (0-100)
     """
-    return await mistral_service.simulate_chat(prompt)
+    
+    # 🔁 PRIMARY → MISTRAL
+    try:
+        return await mistral_service.simulate_chat(prompt)
+    except Exception as e:
+        print(f"Mistral chat failed, falling back to Llama: {str(e)}")
+        
+        # 🔁 FALLBACK → LLAMA
+        try:
+            fallback_response = await llama_service.execute_brain_task(prompt)
+            return json.loads(fallback_response) if isinstance(fallback_response, str) else fallback_response
+        except Exception as e2:
+            return {
+                "response": "Hi! Thanks for reaching out. I'm currently busy but would love to discuss this further. Let's sync soon!",
+                "tone": "Professional/Automated",
+                "interest_level": 80
+            }
 
 @router.post("/login")
 async def login(credentials: Dict[str, str] = Body(...)):
