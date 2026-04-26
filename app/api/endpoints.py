@@ -120,6 +120,25 @@ async def signup(user_data: Dict[str, str] = Body(...)):
     result = await db.users.insert_one(user_data)
     return {"status": "success", "user_id": str(result.inserted_id)}
 
+@router.post("/apply")
+async def public_apply(candidate_data: Dict[str, Any] = Body(...)):
+    """
+    Public endpoint for candidates to apply directly to ScoutFlow.
+    This automatically puts them into the recruitment pool.
+    """
+    # 1. Add metadata (e.g., applied_at)
+    candidate_data["applied_at"] = json.dumps(ObjectId().generation_time, default=str)
+    candidate_data["source"] = "Public Portal"
+    
+    # 2. Save to Atlas
+    result = await db.candidates.insert_one(candidate_data)
+    
+    return {
+        "status": "success", 
+        "message": "Application received! You are now in the ScoutFlow talent pool.",
+        "candidate_id": str(result.inserted_id)
+    }
+
 @router.post("/jobs")
 async def save_job(job_data: Dict[str, Any] = Body(...)):
     if "is_active" not in job_data:
