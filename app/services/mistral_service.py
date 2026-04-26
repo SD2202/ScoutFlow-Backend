@@ -30,18 +30,14 @@ class MistralService:
         }
 
         async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(self.base_url, headers=headers, json=payload, timeout=30.0)
-                response.raise_for_status()
-                result = response.json()
-                content = result["choices"][0]["message"]["content"]
-                
-                # Usually we want JSON for simulated replies to include tone/interest
-                if "JSON" in prompt:
-                    return json.loads(content)
-                return {"response": content}
-            except Exception as e:
-                print(f"Mistral Chat Error: {str(e)}")
-                return {"response": "I'm sorry, I'm having trouble responding right now.", "error": str(e)}
+            response = await client.post(self.base_url, headers=headers, json=payload, timeout=30.0)
+            response.raise_for_status()
+            result = response.json()
+            content = result["choices"][0]["message"]["content"]
+            
+            # Usually we want JSON for simulated replies to include tone/interest
+            if "JSON" in prompt:
+                return json.loads(content)
+            return {"response": content}
 
 mistral_service = MistralService()
