@@ -53,6 +53,7 @@ async def match_candidates(jd_text: str = Body(..., embed=True)):
 
 @router.post("/simulate-conversation")
 async def simulate_conversation(
+    candidate_id: str = Body(...),
     candidate_profile: Dict[str, Any] = Body(...),
     recruiter_message: str = Body(...)
 ):
@@ -69,20 +70,32 @@ async def simulate_conversation(
     
     # 🔁 PRIMARY → MISTRAL
     try:
-        return await mistral_service.simulate_chat(prompt)
+        ai_data = await mistral_service.simulate_chat(prompt)
     except Exception as e:
         print(f"Mistral chat failed, falling back to Llama: {str(e)}")
         
         # 🔁 FALLBACK → LLAMA
         try:
             fallback_response = await llama_service.execute_brain_task(prompt)
-            return json.loads(fallback_response) if isinstance(fallback_response, str) else fallback_response
-        except Exception as e2:
-            return {
+            ai_data = json.loads(fallback_response) if isinstance(fallback_response, str) else fallback_response
+        except Exception:
+            ai_data = {
                 "response": "Hi! Thanks for reaching out. I'm currently busy but would love to discuss this further. Let's sync soon!",
                 "tone": "Professional/Automated",
                 "interest_level": 80
             }
+
+    # 🔥 STORE IN CLOUD (Atlas)
+    chat_entry = {
+        "candidate_id": candidate_id,
+        "recruiter_message": recruiter_message,
+        "candidate_response": ai_data.get("response"),
+        "interest_level": ai_data.get("interest_level"),
+        "timestamp": json.dumps(ObjectId().generation_time, default=str)
+    }
+    await db.chats.insert_one(chat_entry)
+
+    return ai_data
 
 @router.post("/login")
 async def login(credentials: Dict[str, str] = Body(...)):
