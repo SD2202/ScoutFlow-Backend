@@ -193,8 +193,8 @@ async def shortlist_candidate(data: Dict[str, Any] = Body(...)):
 
 @router.get("/dashboard")
 async def get_dashboard():
-    # Fetch all jobs
-    jobs_cursor = db.jobs.find()
+    # Fetch all jobs (Newest first)
+    jobs_cursor = db.jobs.find().sort("_id", -1)
     jobs = []
     async for job in jobs_cursor:
         job["_id"] = str(job["_id"])
