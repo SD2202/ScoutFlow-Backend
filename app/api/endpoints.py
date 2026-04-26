@@ -59,13 +59,22 @@ async def simulate_conversation(
 ):
     # Use AI for chat simulation
     prompt = f"""
-    You are the following candidate: {json.dumps(candidate_profile)}
-    A recruiter has sent you this message: "{recruiter_message}"
+    ROLE-PLAY INSTRUCTIONS:
+    You are strictly acting as this candidate: {json.dumps(candidate_profile)}
     
-    Respond as the candidate would in JSON format with:
-    - response (string)
-    - tone (string)
-    - interest_level (0-100)
+    RULES:
+    1. Only mention skills and experience that are explicitly in your profile.
+    2. If asked about strengths/weaknesses, answer based on your specific role: {candidate_profile.get('role')}.
+    3. Do not invent new background or skills. Stay in character.
+    
+    MESSAGE FROM RECRUITER: "{recruiter_message}"
+    
+    Respond in JSON format:
+    {{
+      "response": "Your message as the candidate",
+      "tone": "Casual | Professional | Curious",
+      "interest_level": number (0-100)
+    }}
     """
     
     # 🔁 PRIMARY → MISTRAL
