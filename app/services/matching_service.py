@@ -42,8 +42,8 @@ class MatchingService:
             }
 
             eval_prompt = f"""
-You are a Senior Technical Recruiter at a top-tier tech company.
-Analyze the fit between the Candidate and the Job Description with extreme precision.
+You are a Senior Technical Recruiter. Your task is to perform a STRICT technical audit.
+Prioritize Hard Skills (Programming Languages, Frameworks, Cloud Tools) above all else.
 
 Candidate Profile:
 {json.dumps(cand_small)}
@@ -52,21 +52,22 @@ Target Job Description:
 {jd_text}
 
 Evaluation Rules:
-1. TECHNICAL MATCH: How many of the "Hard Skills" (tools, languages, frameworks) mentioned in the JD does the candidate actually possess?
-2. EXPERIENCE FIT: Does the candidate meet the seniority level (years of experience) required?
-3. GAP ANALYSIS: What critical skills are MISSING?
+1. TECHNICAL PRIORITY: If a core "Must-Have" technology from the JD is missing, the score MUST be below 60.
+2. HARD SKILLS: Match specific tools (e.g., React, Go, Docker) against the candidate's skills list.
+3. SENIORITY: Does their years of experience actually align with the JD's requirement?
+4. MISMATCH PENALTY: Heavily penalize generalists applying for specialist roles.
 
 Return STRICT JSON:
 {{
   "match_score": number (0-100),
   "technical_alignment": number (0-100),
   "seniority_match": "Yes | No | Partial",
-  "strengths": ["Specific tool match", "Experience level", etc],
-  "weaknesses": ["Missing critical tool X", "Experience gap", etc],
-  "explanation": "Brief technical justification",
+  "strengths": ["Specific tool match", "Domain expertise"],
+  "weaknesses": ["Missing critical tool X", "Seniority gap"],
+  "explanation": "Brief technical justification focusing on SKILL match",
   "recommendation_status": "Highly Recommended | Good Fit | Needs Improvement"
 }}
-Highly Recommended should ONLY be used for candidates matching >80% of core technical requirements.
+Highly Recommended is reserved ONLY for >90% technical skill alignment.
 """
 
             # 🔁 PRIMARY → LLAMA
@@ -110,8 +111,8 @@ Highly Recommended should ONLY be used for candidates matching >80% of core tech
 
             llm_score = evaluation.get("match_score", 50)
 
-            # 🔥 FINAL SCORE (Strict Weighting: 30% Vector Search / 70% AI Analysis)
-            final_score = (similarity * 100 * 0.3) + (llm_score * 0.7)
+            # 🔥 FINAL SCORE (Strict Weighting: 20% Vector Search / 80% AI Analysis)
+            final_score = (similarity * 100 * 0.2) + (llm_score * 0.8)
 
             clean_profile = {
                 "_id": str(cand.get("_id")),
